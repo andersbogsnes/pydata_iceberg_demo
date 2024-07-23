@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+  minio:
+    image: minio/minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio1234
+    command:
+      - server
+      - /data
+      - --console-address
+      - ":9001"
+    volumes:
+      - minio:/data
+  nessie:
+    image: ghcr.io/projectnessie/nessie:0.92.1
+    user: root
+    ports:
+      - 19120:19120
+    environment:
+      - NESSIE_VERSION_STORE_TYPE=ROCKSDB
+      - NESSIE_VERSION_STORE_PERSIST_ROCKS_DATABASE_PATH=/data/nessiestore
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY_NAME=Um9SAYNtvpMBBy77Vn9G
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY_SECRET=dbtRP9MRwxTgVD7jKmeft3yFIbY29hgGjL2t5u0z
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT=http://minio:9000/
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_EXTERNAL_ENDPOINT=http://127.0.0.1:9000/
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS=true
+      - NESSIE_CATALOG_SERVICE_S3.DEFAULT_OPTIONS_REGION=eu-north-1
+      - NESSIE_CATALOG_DEFAULT_WAREHOUSE=warehouse
+      - NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION=s3://datalake/warehouse/
+    volumes:
+      - nessie:/data/nessiestore
+  dremio:
+    image: dremio/dremio-oss:25.0
+    platform: linux/x86_64
+    ports:
+      - 9047:9047
+      - 32010:32010
+    environment:
+      - DREMIO_JAVA_SERVER_EXTRA_OPTS="-Dpaths.addDefaultUser=true-Dpaths.dist=file:///opt/dremio/data/dist"
+    volumes:
+      - dremio:/opt/dremio
+
+volumes:
+  minio:
+  nessie:
+  dremio:
