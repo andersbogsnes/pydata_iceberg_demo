@@ -45,7 +45,7 @@ services:
       - 9047:9047
       - 32010:32010
     environment:
-      - DREMIO_JAVA_SERVER_EXTRA_OPTS="-Dpaths.addDefaultUser=true-Dpaths.dist=file:///opt/dremio/data/dist"
+      - DREMIO_JAVA_SERVER_EXTRA_OPTS="-Dpaths.addDefaultUser=true -Dpaths.dist=file:///opt/dremio/data/dist"
     volumes:
       - dremio:/opt/dremio
 
