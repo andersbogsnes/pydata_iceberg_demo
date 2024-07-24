@@ -35,3 +35,4 @@ with Progress() as progress:
     for file in files:
         client.fput_object('datalake', f"extract/{file.name}", str(file))
         progress.advance(upload_task)
+
