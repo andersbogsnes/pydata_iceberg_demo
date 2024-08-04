@@ -1,0 +1,12 @@
+pyiceberg[glue,snappy,s3fs]
+httpx
+polars
+pyarrow
+fsspec
+pyathena[arrow,sqlalchemy]
+kaggle
+minio
+jupyterlab
+adbc-driver-flightsql
+avro
+ipywidgets

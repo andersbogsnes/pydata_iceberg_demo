@@ -1,14 +1,3 @@
-  pyiceberg
-  psycopg2-binary
-  ibis-framework[duckdb,polars,datafusion]
-  httpx
-  polars
-  pandas
-  pyarrow
-  s3fs
-  fsspec
-  pyathena[arrow,sqlalchemy]
-  kaggle
-  minio
-  pydantic-settings
-  pydantic
+minio
+rich
+kaggle

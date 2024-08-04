@@ -2,16 +2,12 @@ resource "aws_s3_bucket" "datalake-bucket" {
   bucket = "pydata-copenhagen-datalake"
 }
 
-resource "aws_s3_object" "reviews-parquet" {
-  bucket = aws_s3_bucket.datalake-bucket.bucket
-  key    = "extract/steam_reviews.parquet"
-  source = "../data/parquet/steam_reviews.parquet"
-
-  source_hash = filemd5("../data/parquet/steam_reviews.parquet")
-}
-
 resource "aws_glue_catalog_database" "reviews-database" {
   name = "reviews"
+}
+
+resource "aws_glue_catalog_database" "steam-database" {
+  name = "steam"
 }
 
 resource "aws_iam_role" "crawler-role" {
@@ -26,7 +22,6 @@ resource "aws_iam_role" "crawler-role" {
             "Service" : "glue.amazonaws.com"
           },
           "Effect" : "Allow",
-          "Sid" : ""
         }
       ]
     })
@@ -47,7 +42,10 @@ resource "aws_glue_crawler" "reviews-crawler" {
   name          = "steam-reviews-crawler"
   role          = aws_iam_role.crawler-role.name
   s3_target {
-    path = "${aws_s3_object.reviews-parquet.bucket}/extract"
-
+    path = "s3://${aws_s3_bucket.datalake-bucket.bucket}/extract/reviews"
   }
+  configuration = jsonencode({
+    CreatePartitionIndex = true,
+    Version = 1.0
+  })
 }

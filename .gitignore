@@ -198,3 +198,9 @@ override.tf.json
 .terraformrc
 terraform.rc
 
+### JupyterNotebooks template
+# gitignore template for Jupyter Notebooks
+# website: http://jupyter.org/
+
+*/.ipynb_checkpoints/*
+.Trash*

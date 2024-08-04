@@ -1,10 +1,29 @@
 services:
-  db:
-    image: postgres:16-alpine
-    ports:
-      - 5432:5432
+  jupyter:
+    build:
+      context: images/jupyter
     environment:
-      - POSTGRES_PASSWORD=postgres
+      - FSSPEC_S3_ENDPOINT_URL=http://minio:9000
+      - FSSPEC_S3_KEY=minio
+      - FSSPEC_S3_SECRET=minio1234
+    env_file:
+      - .env
+    command:
+      - "jupyter"
+      - "lab"
+      - "--ip"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+      - "--notebook-dir"
+      - "/app/notebooks"
+      - "--NotebookApp.token=''"
+      - "--NotebookApp.password=''"
+    user: ${UID:-1000}:${GUID:-20}
+    volumes:
+      - ./notebooks:/app/notebooks
+    ports:
+      - 8080:8080
   minio:
     image: minio/minio
     ports:
@@ -28,14 +47,13 @@ services:
     environment:
       - NESSIE_VERSION_STORE_TYPE=ROCKSDB
       - NESSIE_VERSION_STORE_PERSIST_ROCKS_DATABASE_PATH=/data/nessiestore
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY_NAME=Um9SAYNtvpMBBy77Vn9G
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY_SECRET=dbtRP9MRwxTgVD7jKmeft3yFIbY29hgGjL2t5u0z
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT=http://minio:9000/
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_EXTERNAL_ENDPOINT=http://127.0.0.1:9000/
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY_NAME=minio
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY_SECRET=minio1234
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT=http://minio:9000
+      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION=us-east-1
       - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS=true
-      - NESSIE_CATALOG_SERVICE_S3.DEFAULT_OPTIONS_REGION=eu-north-1
       - NESSIE_CATALOG_DEFAULT_WAREHOUSE=warehouse
-      - NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION=s3://datalake/warehouse/
+      - NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION=s3://warehouse
     volumes:
       - nessie:/data/nessiestore
   dremio:
@@ -45,7 +63,8 @@ services:
       - 9047:9047
       - 32010:32010
     environment:
-      - DREMIO_JAVA_SERVER_EXTRA_OPTS="-Dpaths.addDefaultUser=true -Dpaths.dist=file:///opt/dremio/data/dist"
+      - DREMIO_JAVA_SERVER_EXTRA_OPTS=-Dpaths.dist=file:///opt/dremio/data/dist
+      - DREMIO_JAVA_EXTRA_OPTS=-Ddebug.addDefaultUser=true
     volumes:
       - dremio:/opt/dremio
 
