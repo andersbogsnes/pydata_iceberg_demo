@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "datalake-bucket" {
-  bucket = "pydata-copenhagen-datalake"
+  bucket = var.s3_bucket_name
 }
 
 resource "aws_glue_catalog_database" "reviews-database" {

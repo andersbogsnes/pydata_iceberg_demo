@@ -77,3 +77,23 @@ the `Minio` server in a bucket named `datalake`. You will need at least the foll
 - `730.csv`
 
 In addition, you will need to create a bucket named `warehouse` in the Minio server
+
+## Optional: AWS Setup
+
+If you want to follow along with the AWS part, make sure you have the AWS CLI installed and configured
+
+### Creating the AWS infrastructure with terraform
+```bash
+terraform -chdir=tf init
+terraform -chdir=tf apply
+````
+
+### Upload data to S3 bucket
+
+To upload the full dataset to an S3 bucket will take some time due to the large dataset.
+The easiest way to ensure that all the data is uploaded is to use the `aws s3 sync` command
+
+```bash
+aws s3 sync data/SteamReviews2024 s3://pydata-copenhagen-datalake/extract/reviews
+```
+
