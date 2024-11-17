@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pydata"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "minio",
+    "rich",
+    "kaggle",
+    "httpx",
+    "typer>=0.13.0",
+]
+
+[project.scripts]
+demo = "pydata.cli:app"
