@@ -37,9 +37,9 @@ def unzip_kaggle_data(source_file: pathlib.Path, target_folder: pathlib.Path):
 
 
 
-def download_kaggle_data(dataset: str):
+def download_kaggle_data(dataset: str, force: bool = False):
     cached_file = _get_cached_file(dataset)
-    if cached_file.exists():
+    if cached_file.exists() and not force:
         console.print("[green]Kaggle data already downloaded, using cache...[/green]")
         return cached_file
 

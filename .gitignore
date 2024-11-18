@@ -164,6 +164,10 @@ data/**/*.csv
 data/**/*.parquet
 notebooks/data/**/*.csv
 notebooks/data/**/*.parquet
+notebooks/data/**/*.avro
+notebooks/data/**/*.orc
+notebooks/data/**/*.json
+
 *.ddb
 ### Terraform template
 # Local .terraform directories
