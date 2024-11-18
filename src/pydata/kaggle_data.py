@@ -1,11 +1,10 @@
 import pathlib
-import shutil
 from zipfile import ZipFile
 
 import httpx
 from platformdirs import user_cache_path
 from rich.progress import Progress, TextColumn, BarColumn, TimeRemainingColumn, TransferSpeedColumn, \
-    DownloadColumn, SpinnerColumn, TimeElapsedColumn
+    DownloadColumn, SpinnerColumn, TimeElapsedColumn, MofNCompleteColumn
 
 from pydata.console import console
 from pydata.exceptions import KaggleAPIError
@@ -20,18 +19,22 @@ def _get_cached_file(dataset: str) -> pathlib.Path:
 
 def unzip_kaggle_data(source_file: pathlib.Path, target_folder: pathlib.Path):
     with ZipFile(source_file) as zip_file:
-        folder = pathlib.Path(zip_file.namelist()[0].split("/")[0])
+        all_files = zip_file.namelist()
+        folder = pathlib.Path(all_files[0].split("/")[0])
         if folder.exists():
             console.print("[green]Kaggle data already extracted[/green]")
             return
 
         with Progress(SpinnerColumn(),
-                       TextColumn("{"),
+                       TextColumn("{task.description}"),
+                       MofNCompleteColumn(),
                        TimeElapsedColumn(),
-
                        console=console) as progress:
-             progress.add_task("")
-             zip_file.extractall(target_folder)
+             unzip_task = progress.add_task("Unzipping files...", total=len(all_files))
+             for csv_file in all_files:
+                zip_file.extract(csv_file, target_folder)
+                progress.advance(unzip_task)
+
 
 
 def download_kaggle_data(dataset: str):

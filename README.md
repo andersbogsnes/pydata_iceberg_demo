@@ -7,20 +7,17 @@ point-of-view to work with large amounts of data stored in object storage.
 
 To be able to follow along, make sure you've cloned the repository locally.
 
-
-
+## Docker
 You will need to have [Docker](https://docs.docker.com/get-docker/) and 
 [Docker Compose](https://docs.docker.com/compose/install/) installed to run the required images.
 
-You will need a [Kaggle](https://kaggle.com) account to download the dataset. After logging in,
-follow the instructions [here](https://github.com/Kaggle/kaggle-api/blob/main/docs/README.md) to
-set up your API keys. 
-
+## [Optional] AWS Account
 Additionally, if you want to follow the AWS examples, you will need an AWS account and have 
-created a set of access keys and placed them in the .env file. 
+created a set of access keys. Make a local copy of `.env.example`, rename it to `.env`
+and add the necessary secrets.
+
 You can optionally use the terraform files found in the `tf` folder to create the 
 necessary infrastructure
-
 
 # Start the notebooks
 
@@ -32,6 +29,7 @@ docker compose up -d
 ```
 
 ## Handy dandy links
+Here are the links to the various services that Docker will spin up.
 
 ### Jupyterlab
 http://localhost:8080
@@ -50,26 +48,40 @@ http://localhost:9047
 - Password: dremio123
 
 ## Python Environment
-While the notebooks themselves run within a dockerized environment, 
-you can choose to use the `prepare_data.py` script to fetch and upload the data to Minio 
-and the notebook data directory
+While the notebooks themselves run within a dockerized environment, this tutorial includes a CLI to
+help with the setup. 
 
-With your favourite virtualenv manager, create a virtualenv and install the requirements.txt
+With your favourite virtualenv manager, create a 
+[virtualenv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/) 
+and activate it, following the guide for your OS.
+
+(I recommend [uv](https://docs.astral.sh/uv/))
+
+When the venv is activated, install the `demo` cli
+
 ```bash
-pip install -r requirements.txt
+pip install .
 ```
 
+The `demo` command will now be available
+
 ```bash
-python prepare_data.py
+demo --help
 ```
 
 ## Dataset
 We are using the Steam Review dataset that can be found on 
 [Kaggle](https://www.kaggle.com/datasets/artermiloff/steam-games-reviews-2024/data). 
-This dataset is around 13Gb and contains 80,000 game reviews scraped from a 
+This dataset is around 13Gb unzipped and contains 80,000 game reviews scraped from a 
 [Steam API endpoint](https://partner.steamgames.com/doc/store/getreviews)
 
-## Manual steps
+### CLI
+To download the data, run
+```bash
+demo data download
+```
+
+### Manual steps
 
 If you want to download the data manually, you can run the following kaggle CLI command, or 
 download it from https://www.kaggle.com/datasets/artermiloff/steam-games-reviews-2024/data.
@@ -90,8 +102,10 @@ In addition, you will need to create a bucket named `warehouse` in the Minio ser
 
 ## Optional: AWS Setup
 
-If you want to follow along with the AWS part, make sure you have the AWS CLI installed and 
-configured
+If you want to follow along with the AWS part, make sure you have the 
+[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+installed and configured. Additionally, you will need 
+[terraform](https://developer.hashicorp.com/terraform/install)
 
 ### Creating the AWS infrastructure with terraform
 ```bash
@@ -105,6 +119,6 @@ To upload the full dataset to an S3 bucket will take some time due to the large 
 The easiest way to ensure that all the data is uploaded is to use the `aws s3 sync` command
 
 ```bash
-aws s3 sync data/SteamReviews2024 s3://pydata-copenhagen-datalake/extract/reviews
+aws s3 sync data/SteamReviews2024 s3://<name of your bucket>/extract/reviews
 ```
 

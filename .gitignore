@@ -160,8 +160,10 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-data/*.csv
-data/*.parquet
+data/**/*.csv
+data/**/*.parquet
+notebooks/data/**/*.csv
+notebooks/data/**/*.parquet
 *.ddb
 ### Terraform template
 # Local .terraform directories

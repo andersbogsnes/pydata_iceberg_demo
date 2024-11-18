@@ -1,5 +1,19 @@
+terraform {
+  required_providers {
+    random = {
+      source  = "hashicorp/random"
+      version = "3.6.2"
+    }
+  }
+}
+resource "random_pet" "random-name" {
+  keepers = {
+    bucket_suffix = var.s3_bucket_name
+  }
+}
+
 resource "aws_s3_bucket" "datalake-bucket" {
-  bucket = var.s3_bucket_name
+  bucket = "${var.s3_bucket_name}-${random_pet.random-name.keepers.bucket_suffix}"
 }
 
 resource "aws_glue_catalog_database" "reviews-database" {
@@ -46,6 +60,6 @@ resource "aws_glue_crawler" "reviews-crawler" {
   }
   configuration = jsonencode({
     CreatePartitionIndex = true,
-    Version = 1.0
+    Version              = 1.0
   })
 }
