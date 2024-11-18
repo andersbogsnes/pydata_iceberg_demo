@@ -1,0 +1,4 @@
+### GET request to example server
+HEAD https://www.kaggle.com/api/v1/datasets/download/artermiloff/steam-games-reviews-2024
+
+###

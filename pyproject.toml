@@ -14,6 +14,7 @@ dependencies = [
     "kaggle",
     "httpx",
     "typer>=0.13.0",
+    "platformdirs>=4.3.6",
 ]
 
 [project.scripts]

@@ -3,3 +3,6 @@ class PydataException(Exception):
 
 class AuthenticationError(PydataException):
     ...
+
+class KaggleAPIError(PydataException):
+    ...
