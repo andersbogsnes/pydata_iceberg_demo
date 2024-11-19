@@ -10,3 +10,4 @@ jupyterlab
 adbc-driver-flightsql
 avro
 ipywidgets
+numpy

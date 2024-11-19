@@ -7,9 +7,17 @@ from rich.progress import track, Progress, TextColumn, BarColumn, MofNCompleteCo
 from pydata.console import console
 
 
-def copy_to_folder(game_ids: list[str],
-                   input_folder: pathlib.Path,
-                   output_folder: pathlib.Path) -> None:
+def copy_games_data_to_folder(game_ids: list[str],
+                              input_folder: pathlib.Path,
+                              output_folder: pathlib.Path) -> None:
+    """Copy the data for game ids to output folder.
+    :param game_ids:
+        list of game ids to copy
+    :param input_folder:
+        folder where input data is
+    :param output_folder:
+        folder to copy the data to
+    """
     for game_id in track(game_ids, description="Copying files to Jupyter", console=console):
         input_file = input_folder.joinpath(game_id).with_suffix(".csv")
         output_file = output_folder.joinpath(game_id).with_suffix(".csv")
@@ -18,13 +26,29 @@ def copy_to_folder(game_ids: list[str],
         output_file.write_text(input_file.read_text())
 
 
-def create_datalake(client: minio.Minio, buckets: list[str]):
+def create_datalake(client: minio.Minio, buckets: list[str]) -> None:
+    """
+    Create buckets in the datalake
+    :param client:
+        instance of minio client
+    :param buckets:
+        list of buckets to create
+    :return: None
+    """
     for bucket in track(buckets, description="Creating Minio buckets", console=console):
         if not client.bucket_exists(bucket):
             client.make_bucket(bucket)
 
 
-def upload_csvs(client: minio.Minio, files: list[pathlib.Path], bucket_name: str):
+def upload_csvs(client: minio.Minio, files: list[pathlib.Path], bucket_name: str) -> None:
+    """Upload CSV files to datalake bucket
+    :param client:
+        an instance of minio client
+    :param files:
+        list of files to upload
+    :param bucket_name:
+        bucket name to upload to
+    """
     with Progress(TextColumn("{task.description}"),
                   BarColumn(),
                   MofNCompleteColumn(),

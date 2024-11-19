@@ -6,3 +6,6 @@ class AuthenticationError(PydataException):
 
 class KaggleAPIError(PydataException):
     ...
+
+class DremioAPIError(PydataException):
+    ...

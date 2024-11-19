@@ -47,14 +47,15 @@ services:
     environment:
       - NESSIE_VERSION_STORE_TYPE=ROCKSDB
       - NESSIE_VERSION_STORE_PERSIST_ROCKS_DATABASE_PATH=/data/nessiestore
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY_NAME=minio
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY_SECRET=minio1234
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT=http://minio:9000
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_EXTERNAL_ENDPOINT=http://localhost:9000
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION=us-east-1
-      - NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS=true
-      - NESSIE_CATALOG_DEFAULT_WAREHOUSE=warehouse
-      - NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION=s3://warehouse
+      - nessie.catalog.default-warehouse=warehouse
+      - nessie.catalog.warehouses.warehouse.location=s3://warehouse/
+      - nessie.catalog.service.s3.default-options.endpoint=http://minio:9000/
+      - nessie.catalog.service.s3.default-options.access-key=urn:nessie-secret:quarkus:nessie.catalog.secrets.access-key
+      - nessie.catalog.service.s3.default-options.path-style-access=true
+      - nessie.catalog.secrets.access-key.name=minio
+      - nessie.catalog.secrets.access-key.secret=minio1234
+      - nessie.catalog.service.s3.default-options.region=us-east-1
+      - nessie.server.authentication.enabled=false
     volumes:
       - nessie:/data/nessiestore
   dremio:
