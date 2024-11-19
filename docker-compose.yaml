@@ -2,10 +2,6 @@ services:
   jupyter:
     build:
       context: images/jupyter
-    environment:
-      - FSSPEC_S3_ENDPOINT_URL=http://minio:9000
-      - FSSPEC_S3_KEY=minio
-      - FSSPEC_S3_SECRET=minio1234
     env_file:
       - .env
     command:
