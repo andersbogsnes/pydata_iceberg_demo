@@ -2,7 +2,8 @@ import pathlib
 from concurrent.futures import ThreadPoolExecutor
 
 import minio
-from rich.progress import track, Progress, TextColumn, BarColumn, MofNCompleteColumn, TimeRemainingColumn
+from rich.progress import track, Progress, TextColumn, BarColumn, MofNCompleteColumn, TimeRemainingColumn, \
+    SpinnerColumn, TimeElapsedColumn
 
 from pydata.console import console
 
@@ -65,3 +66,22 @@ def upload_csvs(client: minio.Minio, files: list[pathlib.Path], bucket_name: str
 
         with ThreadPoolExecutor(max_workers=10) as pool:
             pool.map(_process_file, files)
+
+
+def write_parquet(input_folder: pathlib.Path, output_folder: pathlib.Path) -> None:
+    import duckdb
+    sql = f"""
+    COPY (
+    SELECT * FROM read_csv('{input_folder}/*.csv', union_by_name=true)
+    WHERE recommendationid is not null
+    ) TO '{output_folder}/all_reviews.parquet' (FORMAT 'PARQUET');
+    """
+    with Progress(
+        TextColumn("{task.description}"),
+        SpinnerColumn(),
+        TimeElapsedColumn()
+    ) as progress:
+        task = progress.add_task("Writing parquet file...", total=None)
+        duckdb.sql(sql)
+        progress.stop_task(task)
+        

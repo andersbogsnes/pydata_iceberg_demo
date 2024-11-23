@@ -211,3 +211,4 @@ terraform.rc
 
 */.ipynb_checkpoints/*
 .Trash*
+*/.tmp/

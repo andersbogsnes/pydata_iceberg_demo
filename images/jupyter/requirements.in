@@ -11,3 +11,4 @@ adbc-driver-flightsql
 avro
 ipywidgets
 numpy
+duckdb
