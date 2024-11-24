@@ -14,10 +14,10 @@ You will need to have [Docker](https://docs.docker.com/get-docker/) and
 ## [Optional] AWS Account
 Additionally, if you want to follow the AWS examples, you will need an AWS account and have 
 created a set of access keys. Make a local copy of `.env.example`, rename it to `.env`
-and add the necessary secrets.
+and add the required secrets.
 
-You can optionally use the terraform files found in the `tf` folder to create the 
-necessary infrastructure
+You can use the terraform files found in the `tf` folder to create the 
+necessary AWS infrastructure
 
 # Start the notebooks
 
@@ -75,30 +75,21 @@ We are using the Steam Review dataset that can be found on
 This dataset is around 13Gb unzipped and contains 80,000 game reviews scraped from a 
 [Steam API endpoint](https://partner.steamgames.com/doc/store/getreviews)
 
+There's also an API endpoint for mapping `game_id` to a `name`: https://api.steampowered.com/ISteamApps/GetAppList/v2
+
 ### CLI
+
 To download the data, run
 ```bash
 demo data download
 ```
 
-### Manual steps
-
-If you want to download the data manually, you can run the following kaggle CLI command, or 
-download it from https://www.kaggle.com/datasets/artermiloff/steam-games-reviews-2024/data.
-
+To setup the lake, run
 ```bash
-kaggle datasets download -d artermiloff/steam-games-reviews-2024 --unzip --path data
+demo lake setup
 ```
 
-After unzipping, upload the csv files you'd like to play with into the `notebooks/data` folder 
-as well as to the `Minio` server in a bucket named `datalake`. 
-To be able to follow along, you will need at least the following files:
-- `10.csv`
-- `289070.csv`
-- `578080.csv`
-- `730.csv`
-
-In addition, you will need to create a bucket named `warehouse` in the Minio server via the UI
+We're dealing with a lot of files, so this might take a while.
 
 ## Optional: AWS Setup
 
@@ -111,7 +102,7 @@ installed and configured. Additionally, you will need
 ```bash
 terraform -chdir=tf init
 terraform -chdir=tf apply
-````
+```
 
 ### Upload data to S3 bucket
 
