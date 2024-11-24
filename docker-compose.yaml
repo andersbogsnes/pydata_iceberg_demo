@@ -65,7 +65,6 @@ services:
       - DREMIO_JAVA_EXTRA_OPTS=-Ddebug.addDefaultUser=true
     volumes:
       - dremio:/opt/dremio
-
 volumes:
   minio:
   nessie:

@@ -41,14 +41,16 @@ def create_datalake(client: minio.Minio, buckets: list[str]) -> None:
             client.make_bucket(bucket)
 
 
-def upload_csvs(client: minio.Minio, files: list[pathlib.Path], bucket_name: str) -> None:
-    """Upload CSV files to datalake bucket
+def upload_files(client: minio.Minio, files: list[pathlib.Path], bucket_name: str, prefix: str = "extract/reviews") -> None:
+    """Upload files to datalake bucket
     :param client:
         an instance of minio client
     :param files:
         list of files to upload
     :param bucket_name:
         bucket name to upload to
+    :param prefix:
+        Bucket prefix to use. Defaults to extract/reviews
     """
     with Progress(TextColumn("{task.description}"),
                   BarColumn(),
@@ -56,32 +58,36 @@ def upload_csvs(client: minio.Minio, files: list[pathlib.Path], bucket_name: str
                   TimeRemainingColumn(),
                   console=console) as progress:
         existing_files = {file.object_name.split('/')[-1].split('.')[0] for file in
-                          client.list_objects("datalake", "extract/reviews", recursive=True)}
+                          client.list_objects(bucket_name, prefix, recursive=True)}
         upload_task = progress.add_task("Syncing files with minio", total=len(files))
 
         def _process_file(file_path):
             if file_path.stem not in existing_files:
-                client.fput_object(bucket_name, f"extract/reviews/{file_path.name}", str(file_path))
+                client.fput_object(bucket_name, f"{prefix}/{file_path.name}", str(file_path))
             progress.advance(upload_task)
 
         with ThreadPoolExecutor(max_workers=10) as pool:
             pool.map(_process_file, files)
 
-
-def write_parquet(input_folder: pathlib.Path, output_folder: pathlib.Path) -> None:
+def write_parquet(input_folder: pathlib.Path, output_folder: pathlib.Path) -> pathlib.Path:
     import duckdb
+    output_file = output_folder.joinpath("all_reviews.parquet")
+
+    if output_file.exists():
+        return output_file
+
     sql = f"""
     COPY (
     SELECT * FROM read_csv('{input_folder}/*.csv', union_by_name=true)
     WHERE recommendationid is not null
-    ) TO '{output_folder}/all_reviews.parquet' (FORMAT 'PARQUET');
+    ) TO '{output_file}' (FORMAT 'PARQUET');
     """
-    with Progress(
-        TextColumn("{task.description}"),
+    with Progress(        
         SpinnerColumn(),
+        TextColumn("{task.description}"),
         TimeElapsedColumn()
     ) as progress:
         task = progress.add_task("Writing parquet file...", total=None)
         duckdb.sql(sql)
         progress.stop_task(task)
-        
+    return pathlib.Path(output_folder).joinpath("all_reviews.parquet")

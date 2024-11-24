@@ -5,7 +5,7 @@ import minio
 import typer
 from rich.console import Console
 
-from pydata.data_lake import copy_games_data_to_folder, create_datalake, upload_csvs, write_parquet
+from pydata.data_lake import copy_games_data_to_folder, create_datalake, upload_files, write_parquet
 from pydata.dremio import create_dremio_sources
 from pydata.kaggle_data import download_kaggle_data, unzip_kaggle_data
 
@@ -55,16 +55,20 @@ def upload(ctx: typer.Context, folder: pathlib.Path):
     """Upload csv files in folder"""
     client = ctx.obj["client"]
     files = list(folder.glob("*.csv"))
-    upload_csvs(client, files, BUCKET_NAME)
+    upload_files(client, files, BUCKET_NAME)
     copy_games_data_to_folder(GAME_IDS, KAGGLE_DATA_FOLDER, NOTEBOOK_DATA_DIR)
 
 
 @data_app.command()
-def convert(input_folder: pathlib.Path = KAGGLE_DATA_FOLDER,
-            output_folder: pathlib.Path = NOTEBOOK_DATA_DIR.joinpath("parquet")):
+def convert(
+        ctx: typer.Context,
+        input_folder: pathlib.Path = KAGGLE_DATA_FOLDER,
+        output_folder: pathlib.Path = NOTEBOOK_DATA_DIR.joinpath("parquet")):
     """convert csv files into parquet files"""
     output_folder.mkdir(parents=True, exist_ok=True)
-    write_parquet(input_folder, output_folder)
+    output_file = write_parquet(input_folder, output_folder)
+    client = ctx.obj["client"]
+    upload_files(client, [output_file], BUCKET_NAME, prefix="extract/parquet")
 
 
 @dremio_app.command()
