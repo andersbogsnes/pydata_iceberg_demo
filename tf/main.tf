@@ -1,11 +1,3 @@
-terraform {
-  required_providers {
-    random = {
-      source  = "hashicorp/random"
-      version = "3.6.2"
-    }
-  }
-}
 resource "random_pet" "random-name" {
   keepers = {
     bucket_suffix = var.s3_bucket_name
