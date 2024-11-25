@@ -1,9 +1,15 @@
 import pathlib
 from concurrent.futures import ThreadPoolExecutor
 
-import minio
-from rich.progress import track, Progress, TextColumn, BarColumn, MofNCompleteColumn, TimeRemainingColumn, \
-    SpinnerColumn, TimeElapsedColumn
+import s3fs
+from rich.progress import (track,
+                           Progress,
+                           TextColumn,
+                           BarColumn,
+                           MofNCompleteColumn,
+                           TimeRemainingColumn,
+                           SpinnerColumn,
+                           TimeElapsedColumn)
 
 from pydata.console import console
 
@@ -27,24 +33,30 @@ def copy_games_data_to_folder(game_ids: list[str],
         output_file.write_text(input_file.read_text())
 
 
-def create_datalake(client: minio.Minio, buckets: list[str]) -> None:
+def create_datalake(fs: s3fs.S3FileSystem, buckets: list[str]) -> None:
     """
     Create buckets in the datalake
-    :param client:
-        instance of minio client
+
+    :param fs:
+        an instance of the s3fs FileSystem class
     :param buckets:
         list of buckets to create
     :return: None
     """
     for bucket in track(buckets, description="Creating Minio buckets", console=console):
-        if not client.bucket_exists(bucket):
-            client.make_bucket(bucket)
+        if not fs.exists(bucket):
+            fs.mkdir(bucket)
 
 
-def upload_files(client: minio.Minio, files: list[pathlib.Path], bucket_name: str, prefix: str = "extract/reviews") -> None:
+def upload_files(
+        fs: s3fs.S3FileSystem,
+        files: list[pathlib.Path],
+                 bucket_name: str,
+                 prefix: str = "extract/reviews") -> None:
     """Upload files to datalake bucket
-    :param client:
-        an instance of minio client
+
+    :param fs:
+        instance of s3fs.S3FileSystem
     :param files:
         list of files to upload
     :param bucket_name:
@@ -57,13 +69,13 @@ def upload_files(client: minio.Minio, files: list[pathlib.Path], bucket_name: st
                   MofNCompleteColumn(),
                   TimeRemainingColumn(),
                   console=console) as progress:
-        existing_files = {file.object_name.split('/')[-1].split('.')[0] for file in
-                          client.list_objects(bucket_name, prefix, recursive=True)}
+        existing_files = {file.split('/')[-1].split('.')[0] for file in
+                          fs.ls(f"{bucket_name}/{prefix}")}
         upload_task = progress.add_task("Syncing files with minio", total=len(files))
 
         def _process_file(file_path):
             if file_path.stem not in existing_files:
-                client.fput_object(bucket_name, f"{prefix}/{file_path.name}", str(file_path))
+                fs.cp(file_path, f"{bucket_name}/{prefix}/{file_path.name}" )
             progress.advance(upload_task)
 
         with ThreadPoolExecutor(max_workers=10) as pool:

@@ -1,7 +1,7 @@
 import pathlib
 
 import httpx
-import minio
+import s3fs
 import typer
 from rich.console import Console
 
@@ -39,20 +39,24 @@ def download(force: bool = False):
 @lake_app.callback()
 def main(ctx: typer.Context):
     ctx.ensure_object(dict)
-    client = minio.Minio("localhost:9000", access_key="minio", secret_key="minio1234", secure=False)
-    ctx.obj["client"] = client
+    fs = s3fs.S3FileSystem(key="minio", secret="minio1234", endpoint_url="http://localhost:9000")
+    ctx.obj["fs"] = fs
 
 
 @lake_app.command()
 def setup(ctx: typer.Context):
     """Set up the data lake"""
-    client = ctx.obj["client"]
-    create_datalake(client, [BUCKET_NAME, WAREHOUSE_NAME])
+    fs = ctx.obj["fs"]
+    create_datalake(fs, [BUCKET_NAME, WAREHOUSE_NAME])
+
     with httpx.Client(base_url="http://localhost:9047") as client:
         create_dremio_sources(client)
-    client = ctx.obj["client"]
-    upload_files(client, list(KAGGLE_DATA_FOLDER.glob("*.csv")), BUCKET_NAME)
-    upload_files(client, list(KAGGLE_DATA_FOLDER.glob("*.parquet")), BUCKET_NAME, prefix="extract/parquet")
+
+    upload_files(fs, list(KAGGLE_DATA_FOLDER.glob("*.csv")), BUCKET_NAME)
+    upload_files(fs,
+                 list(KAGGLE_DATA_FOLDER.glob("*.parquet")),
+                 BUCKET_NAME,
+                 prefix="extract/parquet")
     copy_games_data_to_folder(GAME_IDS, KAGGLE_DATA_FOLDER, NOTEBOOK_DATA_DIR)
 
 

@@ -1,7 +1,7 @@
-# Pydata Copenhagen Apache Iceberg Demo
+# Is that an Iceberg in your Datalake?
 
-This tutorial will introduce you to the Apache Iceberg table format and walk through how we can use it from a Python
-point-of-view to work with large amounts of data stored in object storage.
+This tutorial will introduce you to the Apache Iceberg table format and walk through how we can use 
+it from a Python point-of-view to work with large amounts of data stored in object storage.
 
 # Prerequisites
 
