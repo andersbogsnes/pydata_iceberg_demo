@@ -47,14 +47,14 @@ def main(ctx: typer.Context):
 def setup(ctx: typer.Context):
     """Set up the data lake"""
     fs = ctx.obj["fs"]
-    create_datalake(fs, [BUCKET_NAME, WAREHOUSE_NAME])
+    create_datalake(fs, [f"{BUCKET_NAME}/extract/reviews", WAREHOUSE_NAME, f"{BUCKET_NAME}/extract/parquet"])
 
     with httpx.Client(base_url="http://localhost:9047") as client:
         create_dremio_sources(client)
 
     upload_files(fs, list(KAGGLE_DATA_FOLDER.glob("*.csv")), BUCKET_NAME)
     upload_files(fs,
-                 list(KAGGLE_DATA_FOLDER.glob("*.parquet")),
+                 list(DATA_DIR.glob("*.parquet")),
                  BUCKET_NAME,
                  prefix="extract/parquet")
     copy_games_data_to_folder(GAME_IDS, KAGGLE_DATA_FOLDER, NOTEBOOK_DATA_DIR)

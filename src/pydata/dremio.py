@@ -67,6 +67,9 @@ def create_dremio_sources(client: httpx.Client):
     try:
         console.print("[purple]Setting up Nessie[/purple]")
         create_nessie_source(client)
+    except DremioAPIError as e:
+        console.print(f"[red]Failed to create Dremio sources: {e.args[0]['errorMessage']}[/red]")
+    try:
         console.print("[purple]Setting up Minio[/purple]")
         create_minio_source(client)
     except DremioAPIError as e:

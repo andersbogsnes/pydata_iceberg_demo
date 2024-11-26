@@ -51,8 +51,8 @@ def create_datalake(fs: s3fs.S3FileSystem, buckets: list[str]) -> None:
 def upload_files(
         fs: s3fs.S3FileSystem,
         files: list[pathlib.Path],
-                 bucket_name: str,
-                 prefix: str = "extract/reviews") -> None:
+        bucket_name: str,
+        prefix: str = "extract/reviews") -> None:
     """Upload files to datalake bucket
 
     :param fs:
@@ -64,22 +64,33 @@ def upload_files(
     :param prefix:
         Bucket prefix to use. Defaults to extract/reviews
     """
-    with Progress(TextColumn("{task.description}"),
-                  BarColumn(),
-                  MofNCompleteColumn(),
-                  TimeRemainingColumn(),
-                  console=console) as progress:
-        existing_files = {file.split('/')[-1].split('.')[0] for file in
-                          fs.ls(f"{bucket_name}/{prefix}")}
-        upload_task = progress.add_task("Syncing files with minio", total=len(files))
+    try:
+        existing_files = fs.ls(f"{bucket_name}/{prefix}")
+    except FileNotFoundError:
+        existing_files = []
 
-        def _process_file(file_path):
-            if file_path.stem not in existing_files:
-                fs.cp(file_path, f"{bucket_name}/{prefix}/{file_path.name}" )
-            progress.advance(upload_task)
+    if len(existing_files) > 1:
+        progress = Progress("{task.description}",
+                            BarColumn(),
+                            MofNCompleteColumn(),
+                            TimeRemainingColumn(),
+                            console=console)
+        upload_task = progress.add_task(f"Uploading CSV files", total=len(existing_files))
+    else:
+        progress = Progress(SpinnerColumn(), "{task.description}", TimeElapsedColumn(), console=console)
+        upload_task = progress.add_task(f"Uploading Parquet file", total=None)
 
-        with ThreadPoolExecutor(max_workers=10) as pool:
-            pool.map(_process_file, files)
+    def _process_file(file_path):
+        bucket_path = f"{bucket_name}/{prefix}/{file_path.name}"
+        if not bucket_path in existing_files:
+            fs.put_file(file_path, f"{bucket_name}/{prefix}/{file_path.name}")
+        progress.advance(upload_task)
+
+    progress.start()
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        pool.map(_process_file, files)
+    progress.stop()
+
 
 def write_parquet(input_folder: pathlib.Path, output_folder: pathlib.Path) -> pathlib.Path:
     import duckdb
@@ -94,10 +105,10 @@ def write_parquet(input_folder: pathlib.Path, output_folder: pathlib.Path) -> pa
     WHERE recommendationid is not null
     ) TO '{output_file}' (FORMAT 'PARQUET');
     """
-    with Progress(        
-        SpinnerColumn(),
-        TextColumn("{task.description}"),
-        TimeElapsedColumn()
+    with Progress(
+            SpinnerColumn(),
+            TextColumn("{task.description}"),
+            TimeElapsedColumn()
     ) as progress:
         task = progress.add_task("Writing parquet file...", total=None)
         duckdb.sql(sql)
